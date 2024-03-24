@@ -9,13 +9,14 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 class WeatherAlarmViewSet(viewsets.ModelViewSet):
+    queryset = WeatherAlarm.objects.all()
     serializer_class = WeatherAlarmSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def get_queryset(self):
-        return WeatherAlarm.objects.filter(user=self.request.user)
+    # def perform_create(self, serializer):
+    #     serializer.save(user=self.request.user)
+    #
+    # def get_queryset(self):
+    #     return WeatherAlarm.objects.filter(user=self.request.user)
 
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer

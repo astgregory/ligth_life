@@ -12,9 +12,12 @@ class WeatherAlarmSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WeatherAlarm
-        fields = ['id', 'user', 'country', 'city']
+        fields = ['id', 'user', 'country', 'city', 'phone_number', 'lat', 'lon']
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'weather_alarm', 'text', 'status', 'timestamp']
+
+
+

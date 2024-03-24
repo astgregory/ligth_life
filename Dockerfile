@@ -7,9 +7,9 @@ EXPOSE 8000
 
 RUN apk update
 
-RUN apk add postgresql-client build-base postgresql-dev gcc python3-dev musl-dev libpq-dev
+RUN apk add postgresql-client build-base postgresql-dev gcc
 
-RUN pip install -r /temp/requirements.txt
+RUN pip install --no-cache-dir -r /temp/requirements.txt
 
 RUN adduser --disabled-password ligthlife-user
 
