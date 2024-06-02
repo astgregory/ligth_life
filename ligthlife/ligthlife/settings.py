@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'weather',
+
 ]
 
 MIDDLEWARE = [
@@ -138,4 +139,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 
 # CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'astgregory87@gmail.com'
+EMAIL_HOST_PASSWORD = 'fbnt bqqa lecr aakb '
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 

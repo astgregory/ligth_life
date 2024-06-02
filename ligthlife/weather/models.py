@@ -99,7 +99,7 @@ class WeatherAlarm(models.Model):
         null=True,
         verbose_name='Номер телефона'
     )
-
+    email = models.EmailField(max_length=30, unique=True, verbose_name='Адрес электронной почты')
     days = models.ManyToManyField(Days, verbose_name='Дни уведомлений', null=True)
 
     time = models.TimeField(verbose_name='Время уведомлений', null=True)
@@ -121,6 +121,20 @@ class WeatherAlarm(models.Model):
                 self.lon = data[0]['lon']
 
         super(WeatherAlarm, self).save(*args, **kwargs)
+
+    def get_weather_data(self):
+        api_key = 'bddaad7f3cc6c78be3d257780671d344'
+        url = f'https://api.openweathermap.org/data/2.5/weather?lat={self.lat}&lon={self.lon}&appid={api_key}&lang={self.country}&units=metric'
+        response = requests.get(url)
+        if response.status_code == 200:
+            weather_data = response.json()
+            return (f'Погода на улице: {weather_data["weather"][0]["description"]}\n'
+                  f'Температура: {weather_data["main"]["temp"]} градусов по Цельсию, но ощущается как {weather_data["main"]["feels_like"]} градусов\n'
+                  f'Влажность воздуха: {weather_data["main"]["humidity"]} %\n'
+                  f'Скорость ветра: {weather_data["wind"]["speed"]} м/с\n'
+                  f'Облачность: {weather_data["clouds"]["all"]} %\n')
+        else:
+            return f'Ошибка получения данных о погоде: {response.status_code}'
 
 
 class Message(models.Model):

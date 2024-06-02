@@ -22,7 +22,7 @@ class WeatherAlarmSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WeatherAlarm
-        fields = ['id', 'user', 'country', 'city', 'phone_number', 'days', 'time', 'lat', 'lon']
+        fields = ['id', 'user', 'country', 'city', 'phone_number', 'email', 'days', 'time', 'lat', 'lon']
 
 
 class MessageSerializer(serializers.ModelSerializer):
