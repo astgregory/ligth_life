@@ -3,3 +3,5 @@ djangorestframework==3.14.0
 psycopg2==2.9.9
 celery[redis]==5.2.7
 requests==2.31.0
+flower==1.2.0
+celery_singleton==0.3.1

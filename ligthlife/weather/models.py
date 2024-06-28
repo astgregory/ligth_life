@@ -3,6 +3,7 @@ import requests
 from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 
 
 class Days(models.Model):
@@ -135,6 +136,12 @@ class WeatherAlarm(models.Model):
                   f'Облачность: {weather_data["clouds"]["all"]} %\n')
         else:
             return f'Ошибка получения данных о погоде: {response.status_code}'
+
+    def is_due(self, now):
+        day_of_week = now.weekday()
+        days_of_week = self.days.values_list('day', flat=True)
+        current_day = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][day_of_week]
+        return self.time.hour == now.hour and self.time.minute == now.minute and current_day in days_of_week
 
 
 class Message(models.Model):
