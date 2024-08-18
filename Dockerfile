@@ -14,3 +14,4 @@ RUN pip install --no-cache-dir -r /temp/requirements.txt
 RUN adduser --disabled-password ligthlife-user
 
 USER ligthlife-user
+

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from .models import WeatherAlarm, Message, Days
+from .models import WeatherAlarm, Days
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,10 +22,6 @@ class WeatherAlarmSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WeatherAlarm
-        fields = ['id', 'user', 'country', 'city', 'phone_number', 'email', 'days', 'time', 'lat', 'lon']
+        fields = ['id', 'user', 'country', 'city', 'phone_number', 'email', 'days', 'time', 'lat', 'lon', 'time_zone']
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = ['id', 'weather_alarm', 'text', 'status', 'timestamp']

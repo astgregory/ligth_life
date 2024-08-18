@@ -51,6 +51,27 @@ services:
       - DB_PASS=pass
 
 
+  beat:
+    build:
+      context: .
+    hostname: beat
+    entrypoint: celery
+    command: -A celery_app.app beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./ligthlife:/ligthlife
+    links:
+      - redis
+    depends_on:
+      - redis
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+
+
+
   flower:
     build:
       context: .
@@ -67,29 +88,4 @@ services:
       - "5555:5555"
 
 
-#  worker:
-#    build:
-#      context: .
-#    hostname: worker
-#    entrypoint: celery
-#    command: -A celery_app worker --loglevel=info
-#    volumes:
-#      - ./ligthlife:/ligthlife
-#    links:
-#      - redis
-#    depends_on:
-#      - redis
-
-#  beat:
-#    build:
-#      context: .
-#    hostname: beat
-#    entrypoint: celery
-#    command: -A celery_app beat --loglevel=info
-#    volumes:
-#      - ./ligthlife:/ligthlife
-#    links:
-#      - redis
-#    depends_on:
-#      - redis
 

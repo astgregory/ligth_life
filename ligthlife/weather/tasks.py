@@ -1,23 +1,25 @@
-# from django.core.mail import send_mail
-# from .models import WeatherAlarm
+from smtplib import SMTPException
+
 from celery import shared_task
-import datetime
 
 from celery_singleton import Singleton
+from django.core.mail import send_mail
+
+from weather.models import WeatherAlarm
 
 
 @shared_task(base=Singleton)
-def send_weather_message():
-    now = datetime.datetime.now()
-    print(f"Current time: {now}")
-
-    # for weather_alarm in WeatherAlarm.objects.all():
-    #     if weather_alarm.is_due(now):
-    #         message = weather_alarm.get_weather_data()
-    #         subject = f'Погода для города: {weather_alarm.city}'
-    #         send_mail(
-    #             subject=subject,
-    #             message=message,
-    #             from_email='astgregory87@gmail.com',
-    #             recipient_list=[weather_alarm.email],
-    #         )
+def send_weather_message(weather_alarm_id):
+    try:
+        weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
+        message = weather_alarm.get_weather_data()
+        send_mail(
+            subject=f'Погода для города: {weather_alarm.city}',
+            message=message,
+            from_email='astgregory87@gmail.com',
+            recipient_list=[weather_alarm.email],
+        )
+    except WeatherAlarm.DoesNotExist:
+        print(f'Weather alarm с id {weather_alarm_id} не существует')
+    except SMTPException as e:
+        print(f'Ошибка при отправке email: {e}')

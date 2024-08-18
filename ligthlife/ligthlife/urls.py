@@ -16,12 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from weather.views import UserViewSet, WeatherAlarmViewSet, MessageViewSet
+from weather.views import UserViewSet, WeatherAlarmViewSet
 
 router = DefaultRouter()
 router.register('users', UserViewSet)
 router.register('weather-alarms', WeatherAlarmViewSet, basename='weather-alarm')
-router.register(r'weather-alarms/(?P<weather_alarm_id>\d+)/messages', MessageViewSet, basename='message')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
