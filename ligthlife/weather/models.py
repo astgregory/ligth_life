@@ -1,25 +1,21 @@
-import json
-
 import requests
 
 from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import User
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 
 class Days(models.Model):
     DAYS_OF_WEEK_CHOICES = (
-        ('1', 'Понедельник'),
-        ('2', 'Вторник'),
-        ('3', 'Среда'),
-        ('4', 'Четверг'),
-        ('5', 'Пятница'),
-        ('6', 'Суббота'),
-        ('0', 'Воскресенье'),
-
+        ('Понедельник', 'Понедельник'),
+        ('Вторник', 'Вторник'),
+        ('Среда', 'Среда'),
+        ('Четверг', 'Четверг'),
+        ('Пятница', 'Пятница'),
+        ('Суббота', 'Суббота'),
+        ('Воскресенье', 'Воскресенье'),
     )
-    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK_CHOICES, unique=True)
+    day = models.CharField(max_length=11, choices=DAYS_OF_WEEK_CHOICES, unique=True)
 
     def __str__(self):
         return self.day
@@ -106,7 +102,7 @@ class WeatherAlarm(models.Model):
         message="Номер телефона должен быть в формате: '+79998887766'. Требуется длина номера - 11 цифр."
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь', unique=False)
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, verbose_name='Страна')
     city = models.CharField(max_length=100, verbose_name='Город')
     phone_number = models.CharField(
@@ -127,24 +123,18 @@ class WeatherAlarm(models.Model):
     def __str__(self):
         return f"{self.user.username.title()}'s alarms"
 
-    def save(self, *args, **kwargs):
-        api_key = 'bddaad7f3cc6c78be3d257780671d344'
-        url = f"http://api.openweathermap.org/geo/1.0/direct?q={self.city},{self.country}&appid={api_key}"
-        response = requests.get(url)
-
-        if response.status_code == 200:
-            data = response.json()
-            if data:
-                self.lat = data[0]['lat']
-                self.lon = data[0]['lon']
+    def save(self, *args, flag=True, **kwargs):
 
         super(WeatherAlarm, self).save(*args, **kwargs)
-        self.set_periodic_task_send_weather_message()
+        if flag:
+            from weather.tasks import set_latitude_and_longitude
+            set_latitude_and_longitude.delay(self.id)
 
     def get_weather_data(self):
-        api_key = 'bddaad7f3cc6c78be3d257780671d344'
-        url = f'https://api.openweathermap.org/data/2.5/weather?lat={self.lat}&lon={self.lon}&appid={api_key}&lang={self.country}&units=metric'
+        api_key = 'e796fce1a1eec7055ae4f1a3f2637930'
+        url = f'https://ru.api.openweathermap.org/data/2.5/weather?lat={self.lat}&lon={self.lon}&appid={api_key}&lang={self.country}&units=metric'
         response = requests.get(url)
+
         if response.status_code == 200:
             weather_data = response.json()
             if 'weather' in weather_data:
@@ -157,35 +147,3 @@ class WeatherAlarm(models.Model):
                 return 'Ошибка получения данных о погоде: API вернуло пустой список weather'
         else:
             return f'Ошибка получения данных о погоде: {response.status_code}'
-
-    def set_periodic_task_send_weather_message(self):
-        try:
-            task = PeriodicTask.objects.get(name=f'Send weather message task for "{self.user.username.title()}"')
-            shedule = task.crontab
-            shedule.minute = self.time.minute
-            shedule.hour = self.time.hour
-            shedule.day_of_week = ','.join([day.day for day in self.days.all()])
-            shedule.day_of_month = '*'
-            shedule.month_of_year = '*'
-            shedule.timezone = self.time_zone
-
-            shedule.save()
-
-
-        except PeriodicTask.DoesNotExist:
-            schedule, _ = CrontabSchedule.objects.get_or_create(
-                minute=self.time.minute,
-                hour=self.time.hour,
-                day_of_week=','.join([day.day for day in self.days.all()]),
-                day_of_month='*',
-                month_of_year='*',
-                timezone=self.time_zone
-            )
-
-            task = PeriodicTask.objects.create(
-                name=f'Send weather message task for "{self.user.username.title()}"',
-                task='weather.tasks.send_weather_message',
-                crontab=schedule,
-                args=json.dumps([self.id])
-            )
-            task.save()

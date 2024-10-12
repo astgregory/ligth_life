@@ -108,7 +108,7 @@ class WeatherAlarmApiTests(APITestCase):
 # {
 #     "country": "RU",
 #     "city": "Москва",
-#     "phone_number": "79275826419",
+#     "phone_number": "+79275826419",
 #     "email": "test2@bk.ru",
 #     "time": "11:34:24",
 #     "time_zone": "Europe/Moscow",
