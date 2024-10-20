@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 @shared_task(base=Singleton)
 def send_weather_message(weather_alarm_id):
-    print(weather_alarm_id)
     try:
         weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
         message = weather_alarm.get_weather_data()

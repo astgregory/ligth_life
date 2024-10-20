@@ -1,9 +1,6 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-
 
 from .models import WeatherAlarm, Days
 from .serializers import UserSerializer, WeatherAlarmSerializer, DaysSerializer

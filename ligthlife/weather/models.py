@@ -15,7 +15,7 @@ class Days(models.Model):
         ('Суббота', 'Суббота'),
         ('Воскресенье', 'Воскресенье'),
     )
-    day = models.CharField(max_length=11, choices=DAYS_OF_WEEK_CHOICES, unique=True)
+    day = models.CharField(max_length=12, choices=DAYS_OF_WEEK_CHOICES)
 
     def __str__(self):
         return self.day
@@ -102,7 +102,7 @@ class WeatherAlarm(models.Model):
         message="Номер телефона должен быть в формате: '+79998887766'. Требуется длина номера - 11 цифр."
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь', unique=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, verbose_name='Страна')
     city = models.CharField(max_length=100, verbose_name='Город')
     phone_number = models.CharField(
