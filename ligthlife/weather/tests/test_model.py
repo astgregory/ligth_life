@@ -11,7 +11,7 @@ from rest_framework.test import APIClient
 class WeatherAlarmModelsTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='test_user', password='test_password')
-        self.days = Days.objects.create(day='1')
+        self.days = Days.objects.create(day='Понедельник')
         self.weather_alarm = WeatherAlarm.objects.create(
             user=self.user,
             country='RU',
@@ -32,8 +32,13 @@ class WeatherAlarmModelsTest(TestCase):
             'lat': 46.349831,
             'lon': 48.032620
         }]
-        self.weather_alarm.save()
+        weather_alarm = self.weather_alarm
+        latitude_info = mock_get.return_value.json()[0]
+        weather_alarm.lat = latitude_info['lat']
+        weather_alarm.lon = latitude_info['lon']
+        weather_alarm.save()
         weather_alarm = WeatherAlarm.objects.get(id=self.weather_alarm.id)
+
         expected_data = {
             "id": weather_alarm.id,
             "user": {
@@ -47,7 +52,7 @@ class WeatherAlarmModelsTest(TestCase):
             "email": "astgregory@bk.ru",
             "days": [
                 {
-                    "day": '1',
+                    "day": 'Понедельник',
                 }
             ],
             "time": "12:30:00",
