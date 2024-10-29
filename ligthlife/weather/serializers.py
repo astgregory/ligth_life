@@ -5,9 +5,17 @@ from .models import WeatherAlarm, Days
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'password']
+
+    def create(self, validated_data):
+        user = User(username=validated_data['username'])
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 class DaysSerializer(serializers.ModelSerializer):
@@ -44,7 +52,7 @@ class WeatherAlarmSerializer(serializers.ModelSerializer):
         instance.save()
 
         if days_data is not None:
-            instance.days.clear()  # Удаляем старые дни
+            instance.days.clear()
             for day_data in days_data:
                 day, created = Days.objects.get_or_create(day=day_data['day'])
                 instance.days.add(day)
