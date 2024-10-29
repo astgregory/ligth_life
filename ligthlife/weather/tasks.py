@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def send_weather_message(weather_alarm_id):
     try:
         weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
-        message = weather_alarm.get_weather_data()
+        message = get_weather_data(weather_alarm_id)
         send_mail(
             subject=f'Погода для города: {weather_alarm.city}',
             message=message,
@@ -105,3 +105,23 @@ def set_periodic_task_send_weather_message(weather_alarm_id):
             args=json.dumps([weather_alarm.id])
         )
         task.save()
+
+
+def get_weather_data(weather_alarm_id):
+    weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
+    api_key = 'e796fce1a1eec7055ae4f1a3f2637930'
+    url = f'https://ru.api.openweathermap.org/data/2.5/weather?lat={weather_alarm.lat}&lon={weather_alarm.lon}&appid={api_key}&lang={weather_alarm.country}&units=metric'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        weather_data = response.json()
+        if 'weather' in weather_data:
+            return (f'Погода на улице: {weather_data["weather"][0]["description"]}\n'
+                    f'Температура: {weather_data["main"]["temp"]} градусов по Цельсию, но ощущается как {weather_data["main"]["feels_like"]} градусов\n'
+                    f'Влажность воздуха: {weather_data["main"]["humidity"]} %\n'
+                    f'Скорость ветра: {weather_data["wind"]["speed"]} м/с\n'
+                    f'Облачность: {weather_data["clouds"]["all"]} %\n')
+        else:
+            return 'Ошибка получения данных о погоде: API вернуло пустой список weather'
+    else:
+        return f'Ошибка получения данных о погоде: {response.status_code}'

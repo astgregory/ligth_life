@@ -3,6 +3,7 @@ import requests
 from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import User
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
 
 class Days(models.Model):
@@ -130,20 +131,13 @@ class WeatherAlarm(models.Model):
             from weather.tasks import set_latitude_and_longitude
             set_latitude_and_longitude.delay(self.id)
 
-    def get_weather_data(self):
-        api_key = 'e796fce1a1eec7055ae4f1a3f2637930'
-        url = f'https://ru.api.openweathermap.org/data/2.5/weather?lat={self.lat}&lon={self.lon}&appid={api_key}&lang={self.country}&units=metric'
-        response = requests.get(url)
+    def delete(self, *args, **kwargs):
 
-        if response.status_code == 200:
-            weather_data = response.json()
-            if 'weather' in weather_data:
-                return (f'Погода на улице: {weather_data["weather"][0]["description"]}\n'
-                        f'Температура: {weather_data["main"]["temp"]} градусов по Цельсию, но ощущается как {weather_data["main"]["feels_like"]} градусов\n'
-                        f'Влажность воздуха: {weather_data["main"]["humidity"]} %\n'
-                        f'Скорость ветра: {weather_data["wind"]["speed"]} м/с\n'
-                        f'Облачность: {weather_data["clouds"]["all"]} %\n')
-            else:
-                return 'Ошибка получения данных о погоде: API вернуло пустой список weather'
-        else:
-            return f'Ошибка получения данных о погоде: {response.status_code}'
+        try:
+            task = PeriodicTask.objects.get(name=f'Send weather message task for "{self.user.username.title()}"')
+            shedule = task.crontab
+            shedule.delete()
+
+        except PeriodicTask.DoesNotExist:
+            pass
+        super(WeatherAlarm, self).delete(*args, **kwargs)
