@@ -2,6 +2,16 @@
 
 Light Life – это проект, который пока что включает в себя только приложение weather, позволяющее пользователям получать информацию о погоде и устанавливать оповещения о погодных условиях в различных городах.
 
+## Пример сообщения
+
+#### Погода для города: Ваш город
+
+- Погода на улице: ясно
+- Температура: (текущая температура) градусов по Цельсию, но ощущается как (ощущаемая температура) градусов
+- Влажность воздуха: (текущая влажность воздуха) %
+- Скорость ветра: (скорость в цифрах) м/с
+- Облачность: (цифра) %
+
 ## Установка и настройка
 
 ### Требования
@@ -52,7 +62,6 @@ docker compose up
 Приложение предоставляет API для взаимодействия с данными о погоде:
 
 - Регистрация пользователя: POST /api/users/
-- Авторизация пользователя: POST /api/token/
 - Управление оповещениями: GET,POST /api/weather-alarms/,
                            PUT, PATCH, DELETE /api/weather-alarms/{id}/
 #### Пример добавления напоминания о погоде
@@ -83,13 +92,13 @@ docker compose up
 ### Примеры запросов  
 ```bash
 # Пример регистрации
-curl -X POST -d "username=example&password=example" http://localhost:8000/api/users/
+curl -X POST -d "username=example&password=pass" http://localhost:8000/api/users/
 
 # Пример получения данных об уведомлениях о погоде
-curl -X GET http://localhost:8000/api/weather-alarms/
+curl -u example:pass -X GET http://localhost:8000/api/weather-alarms/
 
 # Пример добавления напоминания о погоде
-curl -X POST -H "Content-Type: application/json" -d '{
+curl -u example:pass -X POST -H "Content-Type: application/json" -d '{
     "country": "RU",
     "city": "Moscow",
     "phone_number": "+79998887766",
@@ -105,6 +114,8 @@ curl -X POST -H "Content-Type: application/json" -d '{
         }
     ]
 }' http://localhost:8000/api/weather-alarms/
+
+
 ```
 ## Тестирование
 
