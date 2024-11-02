@@ -41,14 +41,8 @@ class WeatherAlarmSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         days_data = validated_data.pop('days', None)
 
-        instance.country = validated_data.get('country', instance.country)
-        instance.city = validated_data.get('city', instance.city)
-        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-        instance.email = validated_data.get('email', instance.email)
-        instance.time = validated_data.get('time', instance.time)
-        instance.time_zone = validated_data.get('time_zone', instance.time_zone)
-        instance.lat = validated_data.get('lat', instance.lat)
-        instance.lon = validated_data.get('lon', instance.lon)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
 
         if days_data is not None:

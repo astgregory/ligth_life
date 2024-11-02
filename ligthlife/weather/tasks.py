@@ -17,10 +17,13 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(base=Singleton)
-def send_weather_message(weather_alarm_id):
+def send_weather_message(weather_alarm_id: int) -> None:
+    """
+    Функция для отправки сообщения о погоде на электронную почту пользователя при помощи celery
+    """
     try:
         weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
-        message = get_weather_data(weather_alarm_id)
+        message = get_weather_data(weather_alarm)
         send_mail(
             subject=f'Погода для города: {weather_alarm.city}',
             message=message,
@@ -34,9 +37,13 @@ def send_weather_message(weather_alarm_id):
 
 
 @shared_task(base=Singleton)
-def set_latitude_and_longitude(weather_alarm_id):
+def set_latitude_and_longitude(weather_alarm_id: int) -> None:
+    """
+    Функция для получения координат города и страны пользователя при помощи celery
+    через API и записи их в модель
+    """
     try:
-        with transaction.atomic():
+        with ((transaction.atomic())):
             weather_alarm = WeatherAlarm.objects.select_for_update().get(id=weather_alarm_id)
             api_key = 'e796fce1a1eec7055ae4f1a3f2637930'
             url = f"https://ru.api.openweathermap.org/geo/1.0/direct?q={weather_alarm.city},{weather_alarm.country}&appid={api_key}"
@@ -47,7 +54,7 @@ def set_latitude_and_longitude(weather_alarm_id):
                 if data:
                     weather_alarm.lat = data[0]['lat']
                     weather_alarm.lon = data[0]['lon']
-                    weather_alarm.save(flag=False)
+                    weather_alarm.save(flag=False, update_fields=['lat', 'lon'])
                     set_periodic_task_send_weather_message(weather_alarm.id)
 
             else:
@@ -63,7 +70,10 @@ def set_latitude_and_longitude(weather_alarm_id):
             f'Не удалось получить данные о местоположении для города {weather_alarm.city}, страны {weather_alarm.country}. Ошибка: {e}')
 
 
-def set_periodic_task_send_weather_message(weather_alarm_id):
+def set_periodic_task_send_weather_message(weather_alarm_id: int) -> None:
+    """
+    Функция для создания периодической задачи на отправку сообщения о погоде
+    """
     crontab_days = {
         'Понедельник': '1',
         'Вторник': '2',
@@ -73,9 +83,10 @@ def set_periodic_task_send_weather_message(weather_alarm_id):
         'Суббота': '6',
         'Воскресенье': '0',
     }
-    weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
+    weather_alarm = WeatherAlarm.objects.prefetch_related('days').select_related('user').get(id=weather_alarm_id)
     days_list = [crontab_days[day.day] for day in weather_alarm.days.all()]
     try:
+
         task = PeriodicTask.objects.get(name=f'Send weather message task for "{weather_alarm.user.username.title()}"')
         shedule = task.crontab
         shedule.minute = weather_alarm.time.minute
@@ -107,8 +118,10 @@ def set_periodic_task_send_weather_message(weather_alarm_id):
         task.save()
 
 
-def get_weather_data(weather_alarm_id):
-    weather_alarm = WeatherAlarm.objects.get(id=weather_alarm_id)
+def get_weather_data(weather_alarm: WeatherAlarm) -> str:
+    """
+    Функция для получения данных о погоде через API
+    """
     api_key = 'e796fce1a1eec7055ae4f1a3f2637930'
     url = f'https://ru.api.openweathermap.org/data/2.5/weather?lat={weather_alarm.lat}&lon={weather_alarm.lon}&appid={api_key}&lang={weather_alarm.country}&units=metric'
     response = requests.get(url)

@@ -19,6 +19,6 @@ class DaysViewSet(viewsets.ModelViewSet):
 
 
 class WeatherAlarmViewSet(viewsets.ModelViewSet):
-    queryset = WeatherAlarm.objects.all()
+    queryset = WeatherAlarm.objects.all().prefetch_related('days').select_related('user')
     serializer_class = WeatherAlarmSerializer
     permission_classes = [IsOwnerOrAdminReadOnly]
